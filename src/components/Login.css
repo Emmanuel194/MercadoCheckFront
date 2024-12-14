@@ -77,7 +77,7 @@ body {
   color: white;
   cursor: pointer;
   font-size: 24px;
-  margin: 5px !important ;
+  margin: 5px !important;
   transition: transform 0.3s ease, background-color 0.3s ease;
 }
 
@@ -107,4 +107,68 @@ body {
 
 .linkedin-button:hover {
   background-color: #005983 !important;
+}
+
+.signup-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.signup-form {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  width: 400px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.signup-form h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #333;
+  border-bottom: 2px solid #ccc;
+  padding-bottom: 10px;
+}
+
+.signup-form input {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+.signup-form button {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: none;
+  border-radius: 5px;
+  color: white;
+  cursor: pointer;
+}
+
+.signup-form button[type="submit"] {
+  background-color: #4caf50;
+}
+
+.signup-form button[type="submit"]:hover {
+  background-color: #45a049;
+}
+
+.cancel-button {
+  background-color: #f44336;
+}
+
+.cancel-button:hover {
+  background-color: #e03131;
 }
