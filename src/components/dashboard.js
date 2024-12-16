@@ -21,19 +21,72 @@ function Dashboard() {
     }
   };
 
-  const handleCreateNewList = () => {
+  const handleCreateNewList = async () => {
     if (listName.trim() !== "" && currentList.length > 0) {
-      const list = {
-        id: Date.now(),
-        name: listName,
-        items: currentList,
-      };
-      setMyLists([...myLists, list]);
-      setListName("");
-      setCurrentList([]);
-      setShowPopup(false);
+      const token = localStorage.getItem("token");
+      console.log("Creating list with name:", listName);
+      console.log("Current items:", currentList);
+
+      try {
+        const response = await fetch("http://localhost:3000/api/lists", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            user_id: 1,
+            name: listName,
+            items: currentList,
+          }),
+        });
+
+        if (response.ok) {
+          console.log("List created successfully");
+          const newList = await response.json();
+          setMyLists([...myLists, newList]);
+          setListName("");
+          setCurrentList([]);
+          setShowPopup(false);
+        } else {
+          console.error("Erro ao criar a lista:", response.statusText);
+        }
+      } catch (error) {
+        console.error("Erro ao criar a lista:", error);
+      }
+    } else {
+      console.log("List name or items are empty");
     }
   };
+
+  const fetchUserLists = async () => {
+    const token = localStorage.getItem("token");
+
+    try {
+      const response = await fetch("http://localhost:3000/api/lists/1", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const lists = await response.json();
+        setMyLists(lists);
+      } else {
+        console.error(
+          "Erro ao buscar as listas do usuário:",
+          response.statusText
+        );
+      }
+    } catch (error) {
+      console.error("Erro ao buscar as listas do usuário:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchUserLists();
+  }, []);
 
   useEffect(() => {
     if (view === "nearbyMarkets") {
@@ -45,7 +98,7 @@ function Dashboard() {
           .then((response) => response.json())
           .then((data) => setMarkets(data.results))
           .catch((error) =>
-            console.error("Error fetching the markets: ", error)
+            console.error("Error fetching the markets:", error)
           );
       });
     }

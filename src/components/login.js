@@ -1,22 +1,52 @@
 import React, { useState } from "react";
-import { FaGoogle, FaGithub, FaLinkedin } from "react-icons/fa";
+import { FaGoogle, FaGithub, FaLinkedin, FaCheckCircle } from "react-icons/fa";
+import { Modal } from "./Modal";
 import "./Login.css";
 
-function Login() {
+function Login({ onLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showSignup, setShowSignup] = useState(false);
 
-  // Estados para os campos de cadastro
   const [name, setName] = useState("");
   const [signupEmail, setSignupEmail] = useState("");
   const [dob, setDob] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState({});
+  const [loginError, setLoginError] = useState("");
+  const [signupError, setSignupError] = useState("");
+  const [message, setMessage] = useState("");
+  const [showMessageModal, setShowMessageModal] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    try {
+      const response = await fetch("http://localhost:3000/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        localStorage.setItem("token", data.token);
+
+        setMessage("Login bem-sucedido!");
+        setShowMessageModal(true);
+        setTimeout(() => {
+          setShowMessageModal(false);
+
+          onLogin();
+        }, 2000);
+      } else {
+        setLoginError(data.message || "Erro ao fazer login");
+      }
+    } catch (error) {
+      setLoginError("Erro ao fazer login");
+    }
   };
 
   const validateSignupForm = () => {
@@ -38,21 +68,47 @@ function Login() {
     return newErrors;
   };
 
-  const handleSignupSubmit = (e) => {
+  const handleSignupSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validateSignupForm();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
     } else {
-      // Lógica para processar o cadastro aqui
-      setShowSignup(false);
-      // Limpa os campos e os erros após o envio bem-sucedido
-      setName("");
-      setSignupEmail("");
-      setDob("");
-      setSignupPassword("");
-      setConfirmPassword("");
-      setErrors({});
+      try {
+        const response = await fetch("http://localhost:3000/auth/signup", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name,
+            email: signupEmail,
+            dob,
+            password: signupPassword,
+            confirmPassword,
+          }),
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          setMessage("Cadastro bem-sucedido!");
+          setShowMessageModal(true);
+          setTimeout(() => {
+            setShowMessageModal(false);
+            setShowSignup(false);
+            setName("");
+            setSignupEmail("");
+            setDob("");
+            setSignupPassword("");
+            setConfirmPassword("");
+            setErrors({});
+          }, 2000);
+        } else {
+          setSignupError(data.message || "Erro ao fazer cadastro");
+        }
+      } catch (error) {
+        setSignupError("Erro ao fazer cadastro");
+      }
     }
   };
 
@@ -77,6 +133,7 @@ function Login() {
             placeholder="Digite sua senha"
           />
         </div>
+        {loginError && <p className="error">{loginError}</p>}
         <button type="submit">Entrar</button>
         <button
           type="button"
@@ -178,6 +235,7 @@ function Login() {
                   <p className="error">{errors.confirmPassword}</p>
                 )}
               </div>
+              {signupError && <p className="error">{signupError}</p>}
               <button type="submit">Cadastrar</button>
               <button
                 type="button"
@@ -189,6 +247,15 @@ function Login() {
             </form>
           </div>
         </div>
+      )}
+
+      {showMessageModal && (
+        <Modal>
+          <div className="modal-content">
+            <h2>{message}</h2>
+            <FaCheckCircle size={50} color="green" />
+          </div>
+        </Modal>
       )}
     </div>
   );
