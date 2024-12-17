@@ -16,12 +16,16 @@ body {
   color: white;
   padding: 20px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .sidebar h2 {
   text-align: center;
   margin-bottom: 20px;
 }
+
 .logo {
   width: 100%;
   height: auto;
@@ -88,6 +92,11 @@ body {
   padding: 10px;
   border-bottom: 1px solid #ccc;
   font-size: 18px;
+}
+
+.list-item span {
+  flex-grow: 1;
+  text-align: left;
 }
 
 .view-list-button {
@@ -169,6 +178,8 @@ body {
   border-radius: 5px;
   cursor: pointer;
   font-size: 16px;
+  flex: 1; /* Make the buttons take equal space */
+  margin: 0 5px; /* Add margin between buttons */
 }
 
 .popup-buttons .create-list-button {
@@ -186,5 +197,20 @@ body {
 }
 
 .popup-buttons .cancel-button:hover {
+  background-color: #e03131;
+}
+
+.logout-button {
+  background-color: #f44336;
+  color: white;
+  padding: 15px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: auto;
+}
+
+.logout-button:hover {
   background-color: #e03131;
 }

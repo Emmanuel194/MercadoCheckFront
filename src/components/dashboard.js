@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FaBook, FaEye, FaTimes } from "react-icons/fa";
 import "./Dashboard.css";
 
-const API_KEY = "YOUR_GOOGLE_PLACES_API_KEY";
+const API_KEY = "";
 
 function Dashboard() {
   const [view, setView] = useState("list");
@@ -35,14 +35,13 @@ function Dashboard() {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            user_id: 1,
             name: listName,
             items: currentList,
           }),
         });
 
         if (response.ok) {
-          console.log("List created successfully");
+          console.log("Lista criada com sucesso");
           const newList = await response.json();
           setMyLists([...myLists, newList]);
           setListName("");
@@ -55,7 +54,7 @@ function Dashboard() {
         console.error("Erro ao criar a lista:", error);
       }
     } else {
-      console.log("List name or items are empty");
+      console.log("Nome da lista ou itens estão vazios");
     }
   };
 
@@ -63,7 +62,7 @@ function Dashboard() {
     const token = localStorage.getItem("token");
 
     try {
-      const response = await fetch("http://localhost:3000/api/lists/1", {
+      const response = await fetch("http://localhost:3000/api/lists", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -104,14 +103,25 @@ function Dashboard() {
     }
   }, [view]);
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    window.location.href = "/login";
+  };
+
   return (
     <div className="dashboard-container">
       <div className="sidebar">
-        <img src="./assets/logo.jpg" alt="Logo" className="logo" />
-        <h2>Painel de Controle</h2>
-        <button onClick={() => setView("list")}>Lista</button>
-        <button onClick={() => setView("nearbyMarkets")}>
-          Mercados Próximos
+        <div>
+          <img src="./assets/logo.jpg" alt="Logo" className="logo" />
+          <h2>Painel de Controle</h2>
+          <button onClick={() => setView("list")}>Lista</button>
+          <button onClick={() => setView("nearbyMarkets")}>
+            Mercados Próximos
+          </button>
+          <button onClick={() => setView("prices")}>Preços</button>
+        </div>
+        <button onClick={handleLogout} className="logout-button">
+          Sair
         </button>
       </div>
       <div className="content">
@@ -151,6 +161,12 @@ function Dashboard() {
                 <li key={market.place_id}>{market.name}</li>
               ))}
             </ul>
+          </div>
+        )}
+        {view === "prices" && (
+          <div className="prices-view">
+            <h3>Preços</h3>
+            {/* Conteúdo da seção de preços aqui */}
           </div>
         )}
         {showPopup && (
