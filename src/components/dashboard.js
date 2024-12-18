@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaBook, FaEye, FaTimes } from "react-icons/fa";
+import { FaBook, FaEye, FaEdit, FaTrash, FaTimes } from "react-icons/fa";
 import "./Dashboard.css";
 
 const API_KEY = "";
@@ -11,8 +11,9 @@ function Dashboard() {
   const [currentList, setCurrentList] = useState([]);
   const [myLists, setMyLists] = useState([]);
   const [showPopup, setShowPopup] = useState(false);
-  const [showListPopup, setShowListPopup] = useState(null);
+  const [editListData, setEditListData] = useState(null);
   const [markets, setMarkets] = useState([]);
+  const [selectedList, setSelectedList] = useState(null); // Novo estado para armazenar a lista selecionada
 
   const handleAddItem = () => {
     if (newItem.trim() !== "") {
@@ -24,8 +25,6 @@ function Dashboard() {
   const handleCreateNewList = async () => {
     if (listName.trim() !== "" && currentList.length > 0) {
       const token = localStorage.getItem("token");
-      console.log("Creating list with name:", listName);
-      console.log("Current items:", currentList);
 
       try {
         const response = await fetch("http://localhost:3000/api/lists", {
@@ -41,9 +40,8 @@ function Dashboard() {
         });
 
         if (response.ok) {
-          console.log("Lista criada com sucesso");
           const newList = await response.json();
-          setMyLists([...myLists, newList]);
+          setMyLists((prevLists) => [...prevLists, newList]);
           setListName("");
           setCurrentList([]);
           setShowPopup(false);
@@ -53,8 +51,64 @@ function Dashboard() {
       } catch (error) {
         console.error("Erro ao criar a lista:", error);
       }
-    } else {
-      console.log("Nome da lista ou itens estão vazios");
+    }
+  };
+
+  const handleEditList = async () => {
+    if (
+      editListData &&
+      editListData.name.trim() !== "" &&
+      editListData.items.length > 0
+    ) {
+      const token = localStorage.getItem("token");
+
+      try {
+        const response = await fetch("http://localhost:3000/api/lists", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(editListData),
+        });
+
+        if (response.ok) {
+          const updatedList = await response.json();
+          setMyLists((prevLists) =>
+            prevLists.map((list) =>
+              list.id === updatedList.id ? updatedList : list
+            )
+          );
+          setEditListData(null); // Fecha a edição
+        } else {
+          console.error("Erro ao editar a lista:", response.statusText);
+        }
+      } catch (error) {
+        console.error("Erro ao editar a lista:", error);
+      }
+    }
+  };
+
+  const handleDeleteList = async (id) => {
+    const token = localStorage.getItem("token");
+
+    if (window.confirm("Tem certeza que deseja excluir esta lista?")) {
+      try {
+        const response = await fetch(`http://localhost:3000/api/lists/${id}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          setMyLists((prevLists) => prevLists.filter((list) => list.id !== id));
+        } else {
+          console.error("Erro ao excluir a lista:", response.statusText);
+        }
+      } catch (error) {
+        console.error("Erro ao excluir a lista:", error);
+      }
     }
   };
 
@@ -143,16 +197,37 @@ function Dashboard() {
                   <span>{list.name}</span>
                   <button
                     className="view-list-button"
-                    onClick={() => setShowListPopup(list.id)}
+                    onClick={() => setSelectedList(list)}
                   >
                     <FaEye style={{ marginRight: "4px" }} />
-                    Visualizar Lista
+                    Visualizar
+                  </button>
+                  <button
+                    className="edit-list-button"
+                    onClick={() =>
+                      setEditListData({
+                        id: list.id,
+                        name: list.name,
+                        items: list.items,
+                      })
+                    }
+                  >
+                    <FaEdit style={{ marginRight: "4px" }} />
+                    Editar
+                  </button>
+                  <button
+                    className="delete-list-button"
+                    onClick={() => handleDeleteList(list.id)}
+                  >
+                    <FaTrash style={{ marginRight: "4px" }} />
+                    Excluir
                   </button>
                 </li>
               ))}
             </ul>
           </div>
         )}
+
         {view === "nearbyMarkets" && (
           <div className="nearby-markets-view">
             <h3>Mercados Próximos</h3>
@@ -163,12 +238,14 @@ function Dashboard() {
             </ul>
           </div>
         )}
+
         {view === "prices" && (
           <div className="prices-view">
             <h3>Preços</h3>
-            {/* Conteúdo da seção de preços aqui */}
+            {/*  */}
           </div>
         )}
+
         {showPopup && (
           <div className="popup">
             <div className="popup-inner">
@@ -213,24 +290,80 @@ function Dashboard() {
             </div>
           </div>
         )}
-        {showListPopup && (
+
+        {selectedList && (
           <div className="popup">
             <div className="popup-inner">
-              <h3>Itens na Lista</h3>
+              <h3>{selectedList.name}</h3>
               <ul>
-                {myLists
-                  .find((list) => list.id === showListPopup)
-                  .items.map((item, index) => (
-                    <li key={index}>{item}</li>
-                  ))}
+                {selectedList.items.map((item, index) => (
+                  <li key={index}>{item}</li>
+                ))}
+              </ul>
+              <button
+                onClick={() => setSelectedList(null)}
+                className="cancel-button"
+              >
+                <FaTimes style={{ marginRight: "4px" }} />
+                Fechar
+              </button>
+            </div>
+          </div>
+        )}
+
+        {editListData && (
+          <div className="popup">
+            <div className="popup-inner">
+              <h3>Editar Lista</h3>
+              <input
+                type="text"
+                value={editListData.name}
+                onChange={(e) =>
+                  setEditListData({ ...editListData, name: e.target.value })
+                }
+                placeholder="Nome da Lista"
+              />
+              <input
+                type="text"
+                value={newItem}
+                onChange={(e) => setNewItem(e.target.value)}
+                placeholder="Adicione um item à lista"
+              />
+              <button onClick={handleAddItem} className="add-item-button">
+                Adicionar Item
+              </button>
+              <h4>Itens na Lista:</h4>
+              <ul>
+                {editListData.items.map((item, index) => (
+                  <li key={index}>
+                    {item}
+                    <button
+                      onClick={() => {
+                        const updatedItems = editListData.items.filter(
+                          (i, idx) => idx !== index
+                        );
+                        setEditListData({
+                          ...editListData,
+                          items: updatedItems,
+                        });
+                      }}
+                    >
+                      Excluir
+                    </button>
+                  </li>
+                ))}
               </ul>
               <div className="popup-buttons">
+                <button onClick={handleEditList} className="create-list-button">
+                  <FaEdit style={{ marginRight: "4px" }} />
+                  Salvar Edição
+                </button>
                 <button
-                  onClick={() => setShowListPopup(null)}
+                  onClick={() => setEditListData(null)}
                   className="cancel-button"
                 >
                   <FaTimes style={{ marginRight: "4px" }} />
-                  Fechar
+                  Cancelar
                 </button>
               </div>
             </div>

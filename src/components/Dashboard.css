@@ -100,17 +100,43 @@ body {
 }
 
 .view-list-button {
-  padding: 5px 10px;
+  padding: 8px 15px;
   background-color: #ffc107;
   color: white;
   border: none;
   border-radius: 5px;
   cursor: pointer;
   font-size: 14px;
+  transition: background-color 0.3s ease;
 }
 
 .view-list-button:hover {
   background-color: #e0a800;
+}
+
+.edit-list-button,
+.delete-list-button {
+  padding: 8px 15px;
+  background-color: #007bff;
+  color: #f44336;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+  margin-right: 8px;
+}
+
+.edit-list-button:hover {
+  background-color: #0056b3;
+}
+
+.delete-list-button {
+  background-color: #f44336;
+}
+
+.delete-list-button:hover {
+  background-color: #e03131;
 }
 
 .popup {
@@ -178,8 +204,8 @@ body {
   border-radius: 5px;
   cursor: pointer;
   font-size: 16px;
-  flex: 1; /* Make the buttons take equal space */
-  margin: 0 5px; /* Add margin between buttons */
+  flex: 1;
+  margin: 0 5px;
 }
 
 .popup-buttons .create-list-button {
@@ -213,4 +239,69 @@ body {
 
 .logout-button:hover {
   background-color: #e03131;
+}
+
+.view-list-button,
+.edit-list-button,
+.delete-list-button {
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-right: 12px;
+}
+
+.view-list-button {
+  background-color: #ffc107;
+  color: white;
+}
+
+.view-list-button:hover {
+  background-color: #e0a800;
+}
+
+.edit-list-button {
+  background-color: #007bff;
+  color: white;
+}
+
+.edit-list-button:hover {
+  background-color: #0056b3;
+}
+
+.delete-list-button {
+  background-color: #f44336;
+  color: white;
+}
+
+.delete-list-button:hover {
+  background-color: #e03131;
+}
+
+.popup-inner button {
+  font-size: 16px;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.popup-inner button.cancel-button {
+  background-color: #f44336;
+  color: white;
+}
+
+.popup-inner button.cancel-button:hover {
+  background-color: #e03131;
+}
+
+.popup-inner button.close-button {
+  background-color: #2196f3;
+  color: white;
+}
+
+.popup-inner button.close-button:hover {
+  background-color: #1976d2;
 }
