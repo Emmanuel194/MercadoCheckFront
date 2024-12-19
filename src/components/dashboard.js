@@ -1,8 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { FaBook, FaEye, FaEdit, FaTrash, FaTimes } from "react-icons/fa";
+import {
+  FaBook,
+  FaEye,
+  FaEdit,
+  FaTrash,
+  FaTimes,
+  FaSearch,
+  FaShoppingCart,
+} from "react-icons/fa";
 import "./Dashboard.css";
-
-const API_KEY = "";
+import "./utils/location.css";
+import { getNearbyMarkets } from "./utils/location";
 
 function Dashboard() {
   const [view, setView] = useState("list");
@@ -10,10 +18,31 @@ function Dashboard() {
   const [listName, setListName] = useState("");
   const [currentList, setCurrentList] = useState([]);
   const [myLists, setMyLists] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(4);
+  const [currentLat, setCurrentLat] = useState(null);
+  const [currentLng, setCurrentLng] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
   const [editListData, setEditListData] = useState(null);
   const [markets, setMarkets] = useState([]);
-  const [selectedList, setSelectedList] = useState(null); // Novo estado para armazenar a lista selecionada
+  const [selectedList, setSelectedList] = useState(null);
+  const handleSearch = (event) => {
+    setSearchTerm(event.target.value);
+  };
+
+  const filteredLists = myLists.filter((list) =>
+    list.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentFilteredItems = filteredLists.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   const handleAddItem = () => {
     if (newItem.trim() !== "") {
@@ -143,23 +172,93 @@ function Dashboard() {
 
   useEffect(() => {
     if (view === "nearbyMarkets") {
-      navigator.geolocation.getCurrentPosition((position) => {
-        const { latitude, longitude } = position.coords;
-        fetch(
-          `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=1500&type=supermarket&key=${API_KEY}`
-        )
-          .then((response) => response.json())
-          .then((data) => setMarkets(data.results))
-          .catch((error) =>
-            console.error("Error fetching the markets:", error)
-          );
-      });
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          console.log("Obtido geolocalização:", { latitude, longitude });
+          setCurrentLat(latitude);
+          setCurrentLng(longitude);
+          try {
+            const markets = await getNearbyMarkets(latitude, longitude);
+            console.log("Mercados recebidos:", markets);
+            const sortedMarkets = markets.sort(
+              (a, b) =>
+                calculateDistance(
+                  a.geometry.location.lat,
+                  a.geometry.location.lng,
+                  latitude,
+                  longitude
+                ) -
+                calculateDistance(
+                  b.geometry.location.lat,
+                  b.geometry.location.lng,
+                  latitude,
+                  longitude
+                )
+            );
+            setMarkets(sortedMarkets);
+          } catch (error) {
+            console.error("Erro ao obter mercados:", error);
+          }
+        },
+        (error) => {
+          console.error("Erro na geolocalização:", error);
+          const latitude = -23.5505;
+          const longitude = -46.6333;
+          setCurrentLat(latitude);
+          setCurrentLng(longitude);
+          getNearbyMarkets(latitude, longitude)
+            .then((markets) => {
+              console.log(
+                "Mercados recebidos com coordenadas padrão:",
+                markets
+              );
+              const sortedMarkets = markets.sort(
+                (a, b) =>
+                  calculateDistance(
+                    a.geometry.location.lat,
+                    a.geometry.location.lng,
+                    latitude,
+                    longitude
+                  ) -
+                  calculateDistance(
+                    b.geometry.location.lat,
+                    b.geometry.location.lng,
+                    latitude,
+                    longitude
+                  )
+              );
+              setMarkets(sortedMarkets);
+            })
+            .catch((error) => {
+              console.error(
+                "Erro ao obter mercados com coordenadas padrão:",
+                error
+              );
+            });
+        }
+      );
     }
   }, [view]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     window.location.href = "/login";
+  };
+
+  const calculateDistance = (lat1, lng1, lat2, lng2) => {
+    const R = 6371;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLng = ((lng2 - lng1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLng / 2) *
+        Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const d = R * c;
+    return d.toFixed(2);
   };
 
   return (
@@ -190,8 +289,18 @@ function Dashboard() {
               Criar Nova Lista
             </button>
             <h3>Minhas Listas:</h3>
+            <div className="search-container">
+              <input
+                type="text"
+                placeholder="Pesquisar listas..."
+                value={searchTerm}
+                onChange={handleSearch}
+                className="search-input"
+              />
+              <FaSearch className="search-icon" />
+            </div>
             <ul className="my-lists">
-              {myLists.map((list) => (
+              {currentFilteredItems.map((list) => (
                 <li key={list.id} className="list-item">
                   <FaBook style={{ marginRight: "8px" }} />
                   <span>{list.name}</span>
@@ -225,17 +334,52 @@ function Dashboard() {
                 </li>
               ))}
             </ul>
+            <div className="pagination">
+              {Array.from(
+                { length: Math.ceil(filteredLists.length / itemsPerPage) },
+                (_, index) => (
+                  <button key={index + 1} onClick={() => paginate(index + 1)}>
+                    {index + 1}
+                  </button>
+                )
+              )}
+            </div>
           </div>
         )}
-
         {view === "nearbyMarkets" && (
           <div className="nearby-markets-view">
             <h3>Mercados Próximos</h3>
-            <ul className="markets-list">
+            <div className="markets-list">
               {markets.map((market) => (
-                <li key={market.place_id}>{market.name}</li>
+                <a
+                  key={market.place_id}
+                  href={market.mapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="market-item"
+                >
+                  <div className="market-info">
+                    <h4 className="market-name">{market.name}</h4>
+                    <p className="market-address">{market.vicinity}</p>
+                    {currentLat && currentLng && (
+                      <p className="market-distance">
+                        Distância:{" "}
+                        {calculateDistance(
+                          market.geometry.location.lat,
+                          market.geometry.location.lng,
+                          currentLat,
+                          currentLng
+                        )}{" "}
+                        km
+                      </p>
+                    )}
+                  </div>
+                  <div className="market-icon-container">
+                    <FaShoppingCart className="market-icon" />
+                  </div>
+                </a>
               ))}
-            </ul>
+            </div>
           </div>
         )}
 
