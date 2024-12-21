@@ -291,6 +291,8 @@ body {
 .popup-inner button.cancel-button {
   background-color: #f44336;
   color: white;
+  border: none;
+  padding: 8px;
 }
 
 .popup-inner button.cancel-button:hover {
@@ -337,6 +339,7 @@ body {
   position: relative;
   margin-bottom: 20px;
   display: inline-block;
+  width: 500px;
 }
 
 .search-input {
@@ -356,9 +359,28 @@ body {
 
 .search-icon {
   position: absolute;
-  top: 50%;
+  top: 35%;
   left: 10px;
   transform: translateY(-50%);
   font-size: 20px;
   color: #ccc;
+}
+
+.delete-item-button {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  color: #f44336;
+  font-size: 16px;
+  padding: 4px;
+  margin-left: 10px;
+  transition: color 0.3s, transform 0.3s;
+}
+
+.delete-item-button:hover {
+  color: #e03131;
+}
+
+.delete-item-button:active {
+  transform: translateY(2px);
 }

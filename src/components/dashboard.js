@@ -8,6 +8,8 @@ import {
   FaSearch,
   FaShoppingCart,
 } from "react-icons/fa";
+import PriceList from "./princeList";
+// import logo from "../assets/logo.png";
 import "./Dashboard.css";
 import "./utils/location.css";
 import { getNearbyMarkets } from "./utils/location";
@@ -30,6 +32,18 @@ function Dashboard() {
   const handleSearch = (event) => {
     setSearchTerm(event.target.value);
   };
+
+  const filteredMarkets = markets.filter((market) =>
+    market.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const marketsPerPage = 3;
+  const indexOfLastMarket = currentPage * marketsPerPage;
+  const indexOfFirstMarket = indexOfLastMarket - marketsPerPage;
+  const currentMarkets = filteredMarkets.slice(
+    indexOfFirstMarket,
+    indexOfLastMarket
+  );
 
   const filteredLists = myLists.filter((list) =>
     list.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -108,7 +122,7 @@ function Dashboard() {
               list.id === updatedList.id ? updatedList : list
             )
           );
-          setEditListData(null); // Fecha a edição
+          setEditListData(null);
         } else {
           console.error("Erro ao editar a lista:", response.statusText);
         }
@@ -261,11 +275,14 @@ function Dashboard() {
     return d.toFixed(2);
   };
 
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
   return (
     <div className="dashboard-container">
       <div className="sidebar">
         <div>
-          <img src="./assets/logo.jpg" alt="Logo" className="logo" />
           <h2>Painel de Controle</h2>
           <button onClick={() => setView("list")}>Lista</button>
           <button onClick={() => setView("nearbyMarkets")}>
@@ -349,8 +366,15 @@ function Dashboard() {
         {view === "nearbyMarkets" && (
           <div className="nearby-markets-view">
             <h3>Mercados Próximos</h3>
+            <input
+              type="text"
+              className="search-input"
+              placeholder="Pesquisar mercado..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
             <div className="markets-list">
-              {markets.map((market) => (
+              {currentMarkets.map((market) => (
                 <a
                   key={market.place_id}
                   href={market.mapsUrl}
@@ -380,13 +404,28 @@ function Dashboard() {
                 </a>
               ))}
             </div>
+            <div className="pagination">
+              {[
+                ...Array(
+                  Math.ceil(filteredMarkets.length / marketsPerPage)
+                ).keys(),
+              ].map((number) => (
+                <button
+                  key={number + 1}
+                  onClick={() => handlePageChange(number + 1)}
+                  className={currentPage === number + 1 ? "active" : ""}
+                >
+                  {number + 1}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
         {view === "prices" && (
           <div className="prices-view">
-            <h3>Preços</h3>
-            {/*  */}
+            <h3>Ranking de Produtos por Preço</h3>
+            <PriceList /> {}
           </div>
         )}
 
@@ -482,6 +521,7 @@ function Dashboard() {
                   <li key={index}>
                     {item}
                     <button
+                      className="delete-item-button"
                       onClick={() => {
                         const updatedItems = editListData.items.filter(
                           (i, idx) => idx !== index
@@ -492,7 +532,7 @@ function Dashboard() {
                         });
                       }}
                     >
-                      Excluir
+                      <FaTrash />
                     </button>
                   </li>
                 ))}
