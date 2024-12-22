@@ -9,7 +9,6 @@ import {
   FaShoppingCart,
 } from "react-icons/fa";
 import PriceList from "./princeList";
-// import logo from "../assets/logo.png";
 import "./Dashboard.css";
 import "./utils/location.css";
 import { getNearbyMarkets } from "./utils/location";
@@ -283,7 +282,10 @@ function Dashboard() {
     <div className="dashboard-container">
       <div className="sidebar">
         <div>
-          <h2>Painel de Controle</h2>
+          <div className="logo-text">
+            <span className="mercado">MERCADO</span>
+            <span className="check">CHECK</span>
+          </div>
           <button onClick={() => setView("list")}>Lista</button>
           <button onClick={() => setView("nearbyMarkets")}>
             Mercados Próximos

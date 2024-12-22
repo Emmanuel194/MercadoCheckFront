@@ -12,10 +12,12 @@ const PriceList = () => {
 
   const categories = [
     "Carnes",
-    "Laticínio",
-    "Alimento Básico",
-    "Bebida",
+    "Laticínios",
+    "Alimento Básicos",
+    "Bebidas",
     "Hortifrúti",
+    "Limpeza",
+    "Higiene",
   ];
 
   useEffect(() => {
